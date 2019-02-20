@@ -52,6 +52,9 @@
 //             4. 如果 then 不是函数，用 x fulfill promise
 //         4. 如果 x 不是个函数或者对象，用 x fulfill promise
 
+// 参考：https://github.com/chaoyangnz/yapai/blob/master/src/promise.js
+// 参考：https://github.com/taylorhakes/promise-polyfill/blob/master/src/index.js
+// 规范：https://promisesaplus.com
 
 // 执行 [[Resolve]](promise, x)
 export function resolve(promise: MyPromise, x) {
