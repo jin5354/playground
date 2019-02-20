@@ -263,9 +263,50 @@ export class MyPromise {
     })
   }
 
-  static all() {}
+  // Promise.all 返回一个 promise 实例，遍历执行所有迭代器中的 promise，全部子 promise fulfill 后用 value 形成数组 fulfill 结果 promise（无子 promise 时用 [] fulfill 结果 promise）。若子 promise 出现 reject 用第一个 reason reject 结果 promise。
+  static all(iterable) {
+    let arr: MyPromise[] = Array.from(iterable)
+    let result = new MyPromise(() => {})
+    if(arr.length === 0) {
+      fulfill(result, [])
+    }else {
+      let value = []
+      let count = 0
+      arr.forEach((promise, i) => {
+        promise.then((v) => {
+          value[i] = v
+          count++
+          if(count === arr.length) {
+            fulfill(result, value)
+          }
+        }, (r) => {
+          reject(result, r)
+        })
+      })
+    }
 
-  static race() {}
+    return result
+  }
+
+  // Promise.race，返回一个 promise，一旦迭代器中的某个 promise fulfill 或 reject，就以此处理结果 promise
+  static race(iterable) {
+    let arr: MyPromise[] = Array.from(iterable)
+    let result = new MyPromise(() => {})
+
+    if(arr.length === 0) {
+      fulfill(result, undefined)
+    }else {
+      arr.forEach(promise => {
+        promise.then((value) => {
+          fulfill(result, value)
+        }, (reason) => {
+          reject(result, reason)
+        })
+      })
+    }
+
+    return result
+  }
 
   catch(onRejected) {
     return this.then(undefined, onRejected)
@@ -300,43 +341,35 @@ export class MyPromise {
 
 }
 
-let test = new MyPromise(() => {})
-resolve(test, null)
+// function time1() {
+//   return new MyPromise((res) => {
+//     setTimeout(() => {
+//       res(1)
+//     }, 1000)
+//   })
+// }
 
-test.then((value) => {
-  console.log('fu:')
-  console.log(value)
-}, (reason) => {
-  console.log('re:')
-  console.log(reason)
-})
+// function time2() {
+//   return new MyPromise((res, rej) => {
+//     setTimeout(() => {
+//       rej(3)
+//     }, 2000)
+//   })
+// }
 
+// function time3() {
+//   return new MyPromise((res) => {
+//     setTimeout(() => {
+//       res(3)
+//     }, 3000)
+//   })
+// }
 
-// let test = new MyPromise((resolve, reject) => {
-//   setTimeout(() => {
-//     reject('fuck')
-//   }, 2000)
-//   console.log('init promise')
-// })
-
-// test.then((value) => {
-//   console.log('then1 fulfilled')
+// console.log('all inited')
+// MyPromise.race([time1(), time2(), time3()]).then((value) => {
+//   console.log('fu')
 //   console.log(value)
-//   return 1
 // }, (reason) => {
-//   console.log('then1 rejected')
+//   console.log('re')
 //   console.log(reason)
-//   return 1.5
-// }).then((value) => {
-//   console.log('then2')
-//   console.log(value)
-//   return 2
-// }).finally(() => {
-//   console.log('finally')
-// }).then((f) => {
-//   console.log('f fulfilled')
-//   console.log(f)
-// }, (f) => {
-//   console.log('f rejected')
-//   console.log(f)
 // })
