@@ -42,3 +42,26 @@ for (let i = 0; i < 3; i++) {
 data2[0]()
 data2[1]()
 data2[2]()
+
+// 模拟私有变量
+console.log('\nexample3:')
+
+let func = (() => {
+
+  let private = 0
+
+  return {
+    add() {
+      private++
+    },
+    minus() {
+      private--
+    },
+    getValue() {
+      return private
+    }
+  }
+})()
+
+func.add()
+console.log(func.getValue())
