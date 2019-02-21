@@ -316,63 +316,41 @@ export class MyPromise {
   }
 
   // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
-  // onFinally 不接受参数 且 this.finally 返回的 promise 状态和值与 this 保持一致，
+  // https://tc39.github.io/ecma262/#sec-promise.prototype.finally
+  // onFinally 不接受参数
+  // 见 ECMA 规范, onFinally 的返回值需要 [[resolve]]，但是 [[resolve]] 的结果完全用不到，this.finally 返回的 promise 状态和值与 this 保持一致
+
   finally(onFinally) {
-    let promise2 = new MyPromise(() => {})
-    if(this.status === 'fulfilled') {
-      onFinally.call(undefined)
-      fulfill(promise2, this.value)
-    }
-    if(this.status === 'rejected') {
-      onFinally.call(undefined)
-      reject(promise2, this.reason)
-    }
-    if(this.status === 'pending') {
-      this.deferred.finally.push((status, value) => {
-        if(status === 'fulfilled') {
-          onFinally.call(undefined)
-          fulfill(promise2, value)
-        }
-        if(status === 'rejected') {
-          onFinally.call(undefined)
-          reject(promise2, value)
-        }
+    return this.then((v) => {
+      return MyPromise.resolve(onFinally()).then(() => {
+        return v
       })
-    }
-    return promise2
+    }, (r) => {
+      onFinally.call(undefined)
+      throw MyPromise.resolve(onFinally()).then(() => {
+        return MyPromise.reject(r)
+      })
+    })
   }
 
 }
 
-// function time1() {
-//   return new MyPromise((res) => {
-//     setTimeout(() => {
-//       res(1)
-//     }, 1000)
-//   })
-// }
+let time2 = {
+  then(res, rej) {
+     setTimeout(() => {
+        console.log('time2')
+        res('time2')
+     }, 2000)
+  }
+}
 
-// function time2() {
-//   return new MyPromise((res, rej) => {
-//     setTimeout(() => {
-//       rej(3)
-//     }, 2000)
-//   })
-// }
-
-// function time3() {
-//   return new MyPromise((res) => {
-//     setTimeout(() => {
-//       res(3)
-//     }, 3000)
-//   })
-// }
-
-// console.log('all inited')
-// MyPromise.race([time1(), time2(), time3()]).then((value) => {
-//   console.log('fu')
-//   console.log(value)
-// }, (reason) => {
-//   console.log('re')
-//   console.log(reason)
-// })
+MyPromise.resolve(1).finally(() => {
+  console.log('finally exe')
+  return time2
+}).then((v) => {
+  console.log('fu:')
+  console.log(v)
+}, (r) => {
+  console.log('re:')
+  console.log(r)
+})
