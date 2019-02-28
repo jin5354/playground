@@ -125,7 +125,6 @@ export function reject(promise: MyPromise, reason) {
   promise.reason = reason
 
   runQueue(promise, 'rejected', promise.reason)
-  runQueue(promise, 'finally', 'rejected', promise.reason)
 }
 
 // 对于 pending 时注册进的回调，在状态决议后批量执行
@@ -141,8 +140,7 @@ export class MyPromise {
   reason: any
   deferred: {
     fulfilled: Function[],
-    rejected: Function[],
-    finally: Function[]
+    rejected: Function[]
   }
 
   constructor(exe) {
@@ -152,8 +150,7 @@ export class MyPromise {
     this.reason = null
     this.deferred = {
       fulfilled: [],
-      rejected: [],
-      finally: []
+      rejected: []
     }
 
     // 保证 res/rej 只支持一次，之后的忽略
